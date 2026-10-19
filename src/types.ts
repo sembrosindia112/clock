@@ -1,5 +1,4 @@
-export type ClockStyle = 'seven-segment' | 'neon' | 'flip' | 'matrix' | 'minimal';
-
+export type ClockStyle = 'seven-segment' | 'flip' | 'matrix' | 'neon' | 'minimal';
 export type AppMode = 'clock' | 'stopwatch' | 'timer';
 
 export interface Theme {
@@ -16,7 +15,7 @@ export interface Theme {
 
 export interface TimezoneOption {
   label: string;
-  value: string; // IANA timezone e.g. "UTC", "America/New_York"
+  value: string;
   city: string;
   offset: string;
 }

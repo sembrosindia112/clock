@@ -1,10 +1,16 @@
-// Web Audio API synthesizer for clock ticks and alarms (no external audio assets required)
-class SoundFx {
+/**
+ * Web Audio API synthesizer for clock ticks, timer chimes, and alarms.
+ * Self-contained with zero external audio file dependencies.
+ */
+class SoundService {
   private ctx: AudioContext | null = null;
 
-  private initCtx() {
+  private getAudioContext(): AudioContext | null {
+    if (typeof window === 'undefined') return null;
     if (!this.ctx) {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
         this.ctx = new AudioCtx();
       }
@@ -12,81 +18,99 @@ class SoundFx {
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
     }
+    return this.ctx;
   }
 
-  playTick(enabled: boolean) {
-    if (!enabled) return;
+  /**
+   * Short mechanical tick or subtle click for seconds and buttons
+   */
+  playTick(highPitch = false) {
     try {
-      this.initCtx();
-      if (!this.ctx) return;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      const ctx = this.getAudioContext();
+      if (!ctx) return;
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(880, this.ctx.currentTime);
-      gain.gain.setValueAtTime(0.015, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.03);
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(highPitch ? 1200 : 800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(highPitch ? 600 : 300, ctx.currentTime + 0.03);
+
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.035);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(ctx.destination);
 
       osc.start();
-      osc.stop(this.ctx.currentTime + 0.04);
+      osc.stop(ctx.currentTime + 0.04);
     } catch {
-      // Audio autoplay policy fallback
+      // Audio might be waiting for user interaction
     }
   }
 
+  /**
+   * Harmonious chime for top-of-the-hour
+   */
   playChime() {
     try {
-      this.initCtx();
-      if (!this.ctx) return;
-      const now = this.ctx.currentTime;
-      const pitches = [523.25, 659.25, 783.99, 1046.50]; // C E G C
+      const ctx = this.getAudioContext();
+      if (!ctx) return;
 
-      pitches.forEach((freq, idx) => {
-        if (!this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
+      const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+      notes.forEach((freq, index) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now + idx * 0.12);
-        gain.gain.setValueAtTime(0.07, now + idx * 0.12);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.12 + 0.4);
+        const startTime = ctx.currentTime + index * 0.12;
+        osc.frequency.setValueAtTime(freq, startTime);
+
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.12, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.7);
 
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(ctx.destination);
 
-        osc.start(now + idx * 0.12);
-        osc.stop(now + idx * 0.12 + 0.45);
+        osc.start(startTime);
+        osc.stop(startTime + 0.75);
       });
     } catch {
-      // Audio safe ignore
+      // Audio might be blocked
     }
   }
 
+  /**
+   * Alarm sound for timer expiration
+   */
   playAlarm() {
     try {
-      this.initCtx();
-      if (!this.ctx) return;
-      const now = this.ctx.currentTime;
+      const ctx = this.getAudioContext();
+      if (!ctx) return;
+
       for (let i = 0; i < 3; i++) {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(950, now + i * 0.18);
-        gain.gain.setValueAtTime(0.12, now + i * 0.18);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.18 + 0.12);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        const startTime = ctx.currentTime + i * 0.2;
+        osc.frequency.setValueAtTime(880, startTime);
+
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.14);
 
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(ctx.destination);
 
-        osc.start(now + i * 0.18);
-        osc.stop(now + i * 0.18 + 0.15);
+        osc.start(startTime);
+        osc.stop(startTime + 0.15);
       }
     } catch {
-      // Audio safe ignore
+      // Audio might be blocked
     }
   }
 }
 
-export const sound = new SoundFx();
+export const sound = new SoundService();
