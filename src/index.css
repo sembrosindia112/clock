@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #050608;
+    color: #e2e8f0;
+    overflow-x: hidden;
+    user-select: none;
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+.font-orbitron {
+  font-family: 'Orbitron', monospace;
+}
+
+.font-share-tech {
+  font-family: 'Share Tech Mono', monospace;
+}
+
+.font-chakra {
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+/* Subtle CRT Scanline overlay */
+.crt-overlay::before {
+  content: ' ';
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+  background-size: 100% 4px;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0.25;
+}
+
+/* 7-Segment SVG styling */
+.segment-lit {
+  transition: opacity 0.08s ease, filter 0.08s ease;
+}
+.segment-unlit {
+  opacity: 0.045;
+  transition: opacity 0.08s ease;
+}
+
+/* Smooth colon blink animation */
+@keyframes colon-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}
+
+.animate-colon {
+  animation: colon-pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Flip card shadow seam */
+.flip-card-divider {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.7);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+  z-index: 10;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d16;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}

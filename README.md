@@ -1,2 +1,0 @@
-# clock
-Built with Lovable.
